@@ -1,0 +1,72 @@
+<!DOCTYPE html>  
+<html>  
+<head>  
+  <meta charset="UTF-8">
+  <title>CodeVault</title>  
+  <script src="https://unpkg.com/vue@3/dist/vue.global.js"></script>  
+  <style>  
+    body { font-family: Arial; max-width: 800px; margin: 20px auto; }  
+    .snippet { border: 1px solid #ddd; padding: 10px; margin: 10px 0; }  
+    button { background: #007bff; color: white; border: none; padding: 8px; cursor: pointer; }  
+  </style>  
+</head>  
+<body>  
+  <div id="app">  
+    <h1>CodeVault 🗃️</h1>  
+
+    <!-- Formulier -->  
+    <div>  
+      <input v-model="newSnippet.title" placeholder="Titel">  
+      <select v-model="newSnippet.language">  
+        <option>HTML</option>  
+        <option>CSS</option>  
+        <option>JavaScript</option>  
+      </select>  
+      <textarea v-model="newSnippet.code" placeholder="Code"></textarea>  
+      <button @click="saveSnippet">Opslaan</button>  
+    </div>  
+
+    <!-- Live Preview -->  
+    <iframe id="preview" style="width: 100%; height: 200px; border: 1px solid #ccc;"></iframe>  
+
+    <!-- Snippets Lijst -->  
+    <div v-for="snippet in snippets" :key="snippet.id" class="snippet">  
+      <h3>{{ snippet.title }} ({{ snippet.language }})</h3>  
+      <pre>{{ snippet.code }}</pre>  
+    </div>  
+  </div>  
+
+  <script>  
+    const { createApp } = Vue;  
+    createApp({  
+      data() {  
+        return {  
+          newSnippet: { title: "", language: "HTML", code: "" },  
+          snippets: []  
+        };  
+      },  
+      methods: {  
+        async saveSnippet() {  
+          // Stuur snippet naar de backend  
+          const response = await fetch("http://localhost:5000/snippets", {  
+            method: "POST",  
+            headers: { "Content-Type": "application/json" },  
+            body: JSON.stringify(this.newSnippet)  
+          });  
+          if (response.ok) {  
+            this.newSnippet = { title: "", language: "HTML", code: "" };  
+            this.loadSnippets(); // Laad snippets opnieuw  
+          }  
+        },  
+        async loadSnippets() {  
+          const response = await fetch("http://localhost:5000/snippets");  
+          this.snippets = await response.json();  
+        }  
+      },  
+      mounted() {  
+        this.loadSnippets(); // Laad snippets bij opstarten  
+      }  
+    }).mount("#app");
+  </script>  
+</body>  
+</html>  

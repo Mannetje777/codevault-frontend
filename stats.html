@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">  
+  <title>CodeVault - Statistieken</title>
+  <script src="https://cdn.jsdelivr.net/npm/vue@3/dist/vue.global.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <style>
+    body { font-family: Arial; max-width: 800px; margin: 20px auto; }
+  </style>
+</head>
+<body>
+  <div id="app">
+    <h2>📊 Snippet Statistieken</h2>
+    <canvas id="chart"></canvas>
+  </div>
+
+  <script>
+    const { createApp } = Vue;
+    createApp({
+      methods: {
+        async laadStats() {
+          const response = await fetch("http://localhost:5000/stats");
+          const data = await response.json();
+
+          // Data voorbereiden
+          const labels = data.map(item => item[0]); // programmeertalen
+          const counts = data.map(item => item[1]); // aantal snippets
+
+          // Maak een mooie grafiek
+          const ctx = document.getElementById('chart').getContext('2d');
+          new Chart(ctx, {
+            type: 'bar',
+            data: {
+              labels: labels,
+              datasets: [{ 
+                label: "Aantal snippets per taal", 
+                data: counts,
+                backgroundColor: '#007bff',
+                borderColor: '#0056b3',
+                borderWidth: 1
+              }]
+            },
+            options: {
+              scales: {
+                y: { beginAtZero: true }
+              }
+            }
+          });
+        }
+      },
+      mounted() {
+        this.laadStats(); // laadt automatisch
+      }
+    }).mount("#app");
+  </script>
+</body>
+</html>
