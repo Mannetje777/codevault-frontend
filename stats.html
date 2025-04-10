@@ -1,58 +1,69 @@
 <!DOCTYPE html>
-<html>
+<html lang="nl">
 <head>
-  <meta charset="UTF-8">  
-  <title>CodeVault - Statistieken</title>
-  <script src="https://cdn.jsdelivr.net/npm/vue@3/dist/vue.global.js"></script>
-  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>CodeVault Statistieken</title>
+  <!-- Vue.js CDN -->
+  <script src="https://unpkg.com/vue@3"></script>
+  <!-- Chart.js CDN -->
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@3"></script>
   <style>
-    body { font-family: Arial; max-width: 800px; margin: 20px auto; }
+    body { font-family: Arial, sans-serif; margin: 20px; text-align: center; }
+    canvas { max-width: 600px; margin: 20px auto; }
   </style>
 </head>
 <body>
-  <div id="app">
-    <h2>📊 Snippet Statistieken</h2>
-    <canvas id="chart"></canvas>
-  </div>
+  <h1>Statistieken</h1>
+  <p>Aantal snippets per programmeertaal:</p>
+  <!-- Canvas element voor de grafiek -->
+  <canvas id="statsChart" width="400" height="400"></canvas>
+
+  <!-- Link terug naar de hoofdpagina -->
+  <p><a href="index.html">&#171; Terug naar Snippets</a></p>
 
   <script>
     const { createApp } = Vue;
     createApp({
+      data() {
+        return {
+          statsData: {}  // object met telling per taal, bv: { "Python": 2, "JavaScript": 1 }
+        };
+      },
       methods: {
-        async laadStats() {
-          const response = await fetch("http://localhost:5000/stats");
-          const data = await response.json();
-
-          // Data voorbereiden
-          const labels = data.map(item => item[0]); // programmeertalen
-          const counts = data.map(item => item[1]); // aantal snippets
-
-          // Maak een mooie grafiek
-          const ctx = document.getElementById('chart').getContext('2d');
-          new Chart(ctx, {
-            type: 'bar',
-            data: {
-              labels: labels,
-              datasets: [{ 
-                label: "Aantal snippets per taal", 
-                data: counts,
-                backgroundColor: '#007bff',
-                borderColor: '#0056b3',
-                borderWidth: 1
-              }]
-            },
-            options: {
-              scales: {
-                y: { beginAtZero: true }
-              }
-            }
-          });
+        fetchStats() {
+          fetch("https://codevault-backend-igg8.onrender.com/stats")
+            .then(response => response.json())
+            .then(data => {
+              this.statsData = data;
+              // Als we data hebben, teken de grafiek
+              const labels = Object.keys(this.statsData);
+              const values = Object.values(this.statsData);
+              const ctx = document.getElementById("statsChart").getContext("2d");
+              // Maak een taartdiagram met de taalverdeling
+              new Chart(ctx, {
+                type: "pie",
+                data: {
+                  labels: labels,
+                  datasets: [{
+                    data: values,
+                    backgroundColor: ["#4e79a7", "#f28e2b", "#59a14f", "#e15759", "#76b7b2", "#edc949"]
+                  }]
+                },
+                options: {
+                  plugins: {
+                    legend: { position: "bottom" }
+                  }
+                }
+              });
+            })
+            .catch(err => console.error("Error fetching stats:", err));
         }
       },
       mounted() {
-        this.laadStats(); // laadt automatisch
+        this.fetchStats();
       }
-    }).mount("#app");
+    }).mount("body");
   </script>
 </body>
 </html>
